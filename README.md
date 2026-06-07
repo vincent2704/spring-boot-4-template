@@ -1,0 +1,56 @@
+# Spring Boot 4 App Template
+Empty, ready-to-use Spring Boot 4 app template with example data with a set of predefined libraries.
+
+## Features:
+- Spring Boot 4
+- Gradle
+- Lombok
+- Liquibase
+- Spock testing framework
+- Testcontainers for Postgres
+- OpenAPI generator
+  - with IntelliJ IDEA HTTP request generation
+- GitHub Actions build on PR workflow
+
+## Setting up the app for local development
+These instructions assume you haven't changed the configuration in the `application.yaml` file.
+1. Install PostgreSQL database/use Docker container
+   - For Docker container:
+     1. Download `postgres` image
+     2. `docker run --name postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres`
+     3. `docker exec -it postgres psql -U postgres`
+     4. `CREATE DATABASE demo;`
+     5. `exit`
+2. Run the app
+
+## Liquibase
+There are two solutions for Liquibase migrations. One of them is a classic, standard way of using SQL-formatted SQL
+scripts to perform migrations. The second one is using YAML-defined changesets pointing to separate SQL files containing
+migration scripts and rollbacks. You may want to remove one of them depending on your decision.
+
+## Spock testing framework
+A small predefined set of Spock tests is provided along with a Postgres test container and a base class for controller
+end-to-end tests. They are dependent on the Liquibase migrations.
+
+## API Generator
+API generator is a Gradle plugin that generates API-related classes based on OpenAPI specification. Additionally, there
+is also a Gradle task that generates HTTP requests based on the API specification.
+
+### Generating API classes
+Project uses OpenAPI generator. Each change in API requires changing the API specification first, located in
+`/api` folder. Before launching the service in IntelliJ, make sure to run `./gradlew build` first to make sure
+all the API-related classes are generated. Current plugin configuration generates interfaces that need to be implemented
+by controllers and DTO classes. It can be changed so it would also generate controller classes by removing `interfacesOnly`
+property from the plugin configuration located in `build.gradle`.
+
+### Generating HTTP Requests
+`./gradlew build` also generates ready-to-use HTTP requests based on the API specification for [IntelliJ HTTP client](https://www.jetbrains.com/help/idea/http-client-in-product-code-editor.html).
+This makes sure we always have an up-to-date HTTP requests collection.
+
+### Using environments in generated HTTP requests
+Environment JSON files should be located under `/api` folder. Public `http-client.env.json` is tracked by Git.
+For other environments like `PROD`, you'll have to create a `http-client.private.env.json` file which will be ignored by
+Git. For more details on how IntelliJ HTTP client public and private files work, see [JetBrains docs](https://www.jetbrains.com/help/idea/http-client-variables.html#example-working-with-environment-files).
+
+## GitHub Actions build workflow
+There's a simple GitHub Actions workflow that checks app build on every PR to `master` branch.

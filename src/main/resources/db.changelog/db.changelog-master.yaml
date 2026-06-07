@@ -1,0 +1,22 @@
+# LIQUIBASE APPROACH 1: include all SQL files from a directory and define migrations within them. Standard solution
+# Uncommenting this will make the file `001-create-product-and-orders-tables-classic-approach.sql` to be used as
+# a migration script.
+
+#databaseChangeLog:
+#  - includeAll:
+#      path: sql
+#      relativeToChangelogFile: true
+
+
+# LIQUIBASE APPROACH 2: point to SQL files with migrations and separate rollback files. These are pure SQL scripts without
+# liquibase formatted comments used for migration.
+databaseChangeLog:
+  - changeSet:
+      id: 001-create-product-table
+      author: vincent2704
+      changes:
+        - sqlFile:
+            path: db.changelog/changes/001-create-product-and-orders-tables.sql
+      rollback:
+        - sqlFile:
+            path: db.changelog/changes/rollback/001-create-product-and-orders-tables-rollback.sql

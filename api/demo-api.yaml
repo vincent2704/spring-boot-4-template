@@ -1,0 +1,163 @@
+openapi: 3.0.3
+info:
+  title: Demo API
+  description: |-
+    Demo API
+  version: 0.0.1
+tags:
+  - name: Order
+    description: Order operations
+  - name: Product
+    description: Product operations
+paths:
+  /v1/orders:
+    get:
+      tags: [ Order ]
+      operationId: getOrders
+      summary: retrieve all orders
+      description: GET orders
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Order'
+        '405':
+          description: Invalid input
+    post:
+      tags: [ Order ]
+      operationId: createOrder
+      summary: create order
+      description: POST orders
+      requestBody:
+        description: new order to create
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderCreateRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderCreateResponse'
+        '405':
+          description: Invalid input
+  /v1/products:
+    get:
+      tags: [ Product ]
+      operationId: getProducts
+      summary: retrieve all products
+      description: GET products
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+        '405':
+          description: Invalid input
+    post:
+      tags: [ Product ]
+      operationId: createProduct
+      summary: create product
+      description: POST product
+      requestBody:
+        description: new product to create
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductCreateRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductCreateResponse'
+        '405':
+          description: Invalid input
+
+components:
+  schemas:
+    IdNumeric:
+      type: integer
+      format: int64
+    # Order
+    OrderName:
+      type: string
+      description: Order name
+      example: Order name
+    OrderStatus:
+      type: string
+      description: Order status
+      enum: [ DRAFT, PLACED, COMPLETED ]
+    Order:
+      type: object
+      required: [ name ]
+      properties:
+        id:
+          $ref: '#/components/schemas/IdNumeric'
+        name:
+          $ref: '#/components/schemas/OrderName'
+        status:
+          $ref: '#/components/schemas/OrderStatus'
+    OrderCreateRequest:
+      type: object
+      required: [ name ]
+      properties:
+        name:
+          $ref: '#/components/schemas/OrderName'
+    OrderCreateResponse:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/IdNumeric'
+        name:
+          $ref: '#/components/schemas/OrderName'
+        status:
+          $ref: '#/components/schemas/OrderStatus'
+
+    # Product
+    ProductName:
+      type: string
+      description: Product name
+      example: Product A
+    ProductQuantity:
+      type: integer
+      format: int64
+      description: Product quantity
+      example: 12
+    Product:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/IdNumeric'
+        name:
+          $ref: '#/components/schemas/ProductName'
+        quantity:
+          $ref: '#/components/schemas/ProductQuantity'
+    ProductCreateRequest:
+      type: object
+      required: [ name ]
+      properties:
+        name:
+          $ref: '#/components/schemas/OrderName'
+    ProductCreateResponse:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/IdNumeric'
+        name:
+          $ref: '#/components/schemas/OrderName'
+        quantity:
+          $ref: '#/components/schemas/ProductQuantity'

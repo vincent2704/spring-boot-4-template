@@ -1,0 +1,130 @@
+import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
+
+plugins {
+	id 'java'
+	id 'groovy'
+	id 'org.springframework.boot' version '4.0.5'
+	id 'io.spring.dependency-management' version '1.1.7'
+	id "org.openapi.generator" version "7.22.0"
+}
+
+group = 'pl.demo'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(25)
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+ext {
+	set('spockVersion', "2.4-groovy-5.0")
+	set('testContainersVersion', "1.21.4")
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+	implementation 'org.springframework.boot:spring-boot-starter-liquibase'
+
+	implementation 'org.postgresql:postgresql:42.7.11'
+
+	implementation("jakarta.validation:jakarta.validation-api:3.1.1")
+
+	// <-- API generator
+	implementation 'org.openapitools:jackson-databind-nullable:0.2.1'
+	implementation 'io.swagger.core.v3:swagger-annotations:2.2.10'
+	// API generator -->
+
+	// <-- Lombok
+	annotationProcessor 'org.projectlombok:lombok'
+	compileOnly 'org.projectlombok:lombok'
+	testCompileOnly 'org.projectlombok:lombok'
+	testAnnotationProcessor 'org.projectlombok:lombok'
+	// Lombok -->
+
+
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.boot:spring-boot-resttestclient'
+	testImplementation 'org.springframework.boot:spring-boot-starter-restclient'
+	testImplementation "org.spockframework:spock-core:${spockVersion}"
+	testImplementation "org.spockframework:spock-spring:${spockVersion}"
+
+	testImplementation "org.testcontainers:junit-jupiter:${testContainersVersion}"
+	testImplementation "org.testcontainers:postgresql:${testContainersVersion}"
+
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
+
+def generateApiTask = 'openApiGenerateV1'
+def apiFile = layout.projectDirectory.file("$rootDir/api/demo-api.yaml")
+def generatedSourcesDirectory = layout.projectDirectory.dir("$rootDir/build/generated")
+tasks.register(generateApiTask, GenerateTask) {
+	generatorName = "spring"
+	library = "spring-boot"
+	inputSpec = apiFile
+	outputDir = generatedSourcesDirectory
+	apiPackage = "pl.demo.generated.api"
+	modelPackage = "pl.demo.generated.model"
+	modelNameSuffix = "Dto"
+	configOptions = [
+			annotationLibrary    : 'none',
+			documentationProvider: 'source',
+			sourceFolder         : "src/generated/java",
+			dateLibrary          : "java8",
+			interfaceOnly        : 'true',
+			useTags              : 'true',
+			useSpringBoot4       : 'true',
+			useJackson3          : 'true'
+	]
+}
+
+def generateHttpRequestsTask = 'generateHttpRequests'
+def generatedHttpDirectory = layout.projectDirectory.dir("${generatedSourcesDirectory}/http-client")
+tasks.register(generateHttpRequestsTask, GenerateTask) {
+	dependsOn(tasks.named(generateApiTask))
+	generatorName.set("jetbrains-http-client")
+	inputSpec = apiFile
+	outputDir = generatedHttpDirectory
+
+	// A workaround step that replaces hardcoded localhost URLs in generated HTTP request files with a placeholder {{host}}
+	// so we can use environments. By default, the URL is localhost. This can be changed by adding 'servers' property in the
+	// OpenAPI specification, but this would hardcode the first server address in the requests. The HTTP requests generator
+	// doesn't support more than one server URL.
+	doLast {
+		fileTree("$rootDir/build/generated/http-client") {
+			include "**/*.http"
+		}.forEach { file ->
+			file.text = file.text
+					.replace("http://localhost", "{{host}}")
+					.replace("http://localhost:8080", "{{host}}")
+		}
+	}
+}
+
+def copyHttpEnvironmentsFileTask = 'copyHttpEnvironmentsFile'
+tasks.register(copyHttpEnvironmentsFileTask, Copy) {
+	dependsOn tasks.named(generateHttpRequestsTask)
+	from layout.projectDirectory.file("$rootDir/api/http-client.env.json")
+	from layout.projectDirectory.file("$rootDir/api/http-client.private.env.json")
+	into "${generatedHttpDirectory}/Apis"
+}
+
+def generateSpecsTask = 'generateSpecs'
+tasks.register(generateSpecsTask) {
+	dependsOn(tasks.named(copyHttpEnvironmentsFileTask))
+}
+
+compileJava.dependsOn tasks.named(generateSpecsTask)
+
+sourceSets.main.java.srcDirs += "$rootDir/build/generated/src/generated/java"
