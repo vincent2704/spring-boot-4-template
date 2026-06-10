@@ -1,8 +1,9 @@
 # Spring Boot 4 App Template
-Empty, ready-to-use Spring Boot 4 app template with example data with a set of predefined libraries.
+Empty, ready-to-use Spring Boot 4 app template with a set of predefined libraries and example data.
 
 ## Features:
 - Spring Boot 4
+- Java 25
 - Gradle
 - Lombok
 - Liquibase

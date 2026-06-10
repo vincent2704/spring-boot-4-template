@@ -67,12 +67,15 @@ tasks.named('test') {
 }
 
 def generateApiTask = 'openApiGenerateV1'
-def apiFile = layout.projectDirectory.file("$rootDir/api/demo-api.yaml")
+def sourceApiDirectory = layout.projectDirectory.dir("$rootDir/api")
+def sourceApiFile = layout.projectDirectory.file("${sourceApiDirectory}/demo-api.yaml")
 def generatedSourcesDirectory = layout.projectDirectory.dir("$rootDir/build/generated")
+def generatedJavaDirectoryPath = "src/generated/java"
+
 tasks.register(generateApiTask, GenerateTask) {
 	generatorName = "spring"
 	library = "spring-boot"
-	inputSpec = apiFile
+	inputSpec = sourceApiFile
 	outputDir = generatedSourcesDirectory
 	apiPackage = "pl.demo.generated.api"
 	modelPackage = "pl.demo.generated.model"
@@ -80,7 +83,7 @@ tasks.register(generateApiTask, GenerateTask) {
 	configOptions = [
 			annotationLibrary    : 'none',
 			documentationProvider: 'source',
-			sourceFolder         : "src/generated/java",
+			sourceFolder         : generatedJavaDirectoryPath,
 			dateLibrary          : "java8",
 			interfaceOnly        : 'true',
 			useTags              : 'true',
@@ -94,7 +97,7 @@ def generatedHttpDirectory = layout.projectDirectory.dir("${generatedSourcesDire
 tasks.register(generateHttpRequestsTask, GenerateTask) {
 	dependsOn(tasks.named(generateApiTask))
 	generatorName.set("jetbrains-http-client")
-	inputSpec = apiFile
+	inputSpec = sourceApiFile
 	outputDir = generatedHttpDirectory
 
 	// A workaround step that replaces hardcoded localhost URLs in generated HTTP request files with a placeholder {{host}}
@@ -102,7 +105,7 @@ tasks.register(generateHttpRequestsTask, GenerateTask) {
 	// OpenAPI specification, but this would hardcode the first server address in the requests. The HTTP requests generator
 	// doesn't support more than one server URL.
 	doLast {
-		fileTree("$rootDir/build/generated/http-client") {
+		fileTree(generatedHttpDirectory) {
 			include "**/*.http"
 		}.forEach { file ->
 			file.text = file.text
@@ -115,8 +118,8 @@ tasks.register(generateHttpRequestsTask, GenerateTask) {
 def copyHttpEnvironmentsFileTask = 'copyHttpEnvironmentsFile'
 tasks.register(copyHttpEnvironmentsFileTask, Copy) {
 	dependsOn tasks.named(generateHttpRequestsTask)
-	from layout.projectDirectory.file("$rootDir/api/http-client.env.json")
-	from layout.projectDirectory.file("$rootDir/api/http-client.private.env.json")
+	from layout.projectDirectory.file("${sourceApiDirectory}/http-client.env.json")
+	from layout.projectDirectory.file("${sourceApiDirectory}/http-client.private.env.json")
 	into "${generatedHttpDirectory}/Apis"
 }
 
@@ -127,4 +130,4 @@ tasks.register(generateSpecsTask) {
 
 compileJava.dependsOn tasks.named(generateSpecsTask)
 
-sourceSets.main.java.srcDirs += "$rootDir/build/generated/src/generated/java"
+sourceSets.main.java.srcDirs += "${generatedSourcesDirectory}/${generatedJavaDirectoryPath}"
