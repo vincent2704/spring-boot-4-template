@@ -12,6 +12,7 @@ Empty, ready-to-use Spring Boot 4 app template with a set of predefined librarie
 - OpenAPI generator
   - with IntelliJ IDEA HTTP request generation
 - GitHub Actions build on PR workflow
+- Docker compose: service + Postgres DB
 
 ## Setting up the app for local development
 These instructions assume you haven't changed the configuration in the `application.yaml` file.
