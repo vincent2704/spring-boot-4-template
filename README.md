@@ -61,9 +61,9 @@ There's a simple GitHub Actions workflow that checks app build on every PR to `m
 Run `docker-compose up --build` to start the service along with Postgres DB.
 
 ### Debugging with Compose
-You can debug the app when running with Docker compose. Follow these steps:
-1. In IntelliJ, click Edit configurations...
-2. Click Add New Configuration and select Remote JVM Debug
+You can debug the app when running with Docker compose. In IntelliJ, follow these steps:
+1. Click _Edit configurations_...
+2. Click _Add New Configuration_ and select _Remote JVM Debug_
 3. Leave the default settings as they are aligned to compose configuration
-4. If the app is running, select the new configuration and click Debug
+4. If the app is running, select the new configuration and click _Debug_
 5. Place your breakpoints wherever you like
