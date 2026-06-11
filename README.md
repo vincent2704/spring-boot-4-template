@@ -1,8 +1,9 @@
 # Spring Boot 4 App Template
-Empty, ready-to-use Spring Boot 4 app template with example data with a set of predefined libraries.
+Empty, ready-to-use Spring Boot 4 app template with a set of predefined libraries and example data.
 
 ## Features:
 - Spring Boot 4
+- Java 25
 - Gradle
 - Lombok
 - Liquibase
@@ -11,6 +12,7 @@ Empty, ready-to-use Spring Boot 4 app template with example data with a set of p
 - OpenAPI generator
   - with IntelliJ IDEA HTTP request generation
 - GitHub Actions build on PR workflow
+- Docker compose: service + Postgres DB
 
 ## Setting up the app for local development
 These instructions assume you haven't changed the configuration in the `application.yaml` file.
@@ -39,7 +41,7 @@ is also a Gradle task that generates HTTP requests based on the API specificatio
 ### Generating API classes
 Project uses OpenAPI generator. Each change in API requires changing the API specification first, located in
 `/api` folder. Before launching the service in IntelliJ, make sure to run `./gradlew build` first to make sure
-all the API-related classes are generated. Current plugin configuration generates interfaces that need to be implemented
+all the API-related classes are generated. The current plugin configuration generates interfaces that need to be implemented
 by controllers and DTO classes. It can be changed so it would also generate controller classes by removing `interfacesOnly`
 property from the plugin configuration located in `build.gradle`.
 
@@ -54,3 +56,14 @@ Git. For more details on how IntelliJ HTTP client public and private files work,
 
 ## GitHub Actions build workflow
 There's a simple GitHub Actions workflow that checks app build on every PR to `master` branch.
+
+## Docker compose
+Run `docker-compose up --build` to start the service along with Postgres DB.
+
+### Debugging with Compose
+You can debug the app when running with Docker compose. In IntelliJ, follow these steps:
+1. Click _Edit configurations_...
+2. Click _Add New Configuration_ and select _Remote JVM Debug_
+3. Leave the default settings as they are aligned to compose configuration
+4. If the app is running, select the new configuration and click _Debug_
+5. Place your breakpoints wherever you like
